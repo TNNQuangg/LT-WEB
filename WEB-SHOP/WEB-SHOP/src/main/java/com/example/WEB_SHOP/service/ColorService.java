@@ -1,5 +1,87 @@
 package com.example.WEB_SHOP.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.example.WEB_SHOP.dto.ApiResponse;
+import com.example.WEB_SHOP.model.Color;
+import com.example.WEB_SHOP.repository.ColorRepository;
+
+@Service
 public class ColorService {
-    
+
+    @Autowired
+    private ColorRepository repo;
+
+    public ResponseEntity<ApiResponse> listColor() {
+        try {
+            return ResponseEntity.ok().body(
+                new ApiResponse<>("SUCCESS", "Lấy danh sách màu sắc thành công", repo.findAll())
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("ERROR", "Lỗi Server", null)
+            );
+        }
+    }
+
+    public ResponseEntity<ApiResponse> addColor(Color color) {
+        try {
+            String name = color.getName().trim() ;
+            if (name.isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("ERROR", "Tên màu sắc không được để trống", null)
+                ) ;
+            } 
+            if (repo.findByName(name) != null) {
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("ERROR", "Tên màu sắc đã tồn tại", null)
+                ) ;
+            }  
+            return ResponseEntity.ok().body(
+                new ApiResponse<>("SUCCESS", "Thêm màu sắc thành công", repo.save(color))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("ERROR", "Lỗi Server", null)
+            );
+        }
+    }
+
+    public ResponseEntity<ApiResponse> updateColor(Integer id, Color color) {
+        try {
+            if (!repo.existsById(id)) {
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("ERROR", "Màu sắc không tồn tại", null)
+                );
+            }
+            color.setId(id);
+            return ResponseEntity.ok().body(
+                new ApiResponse<>("SUCCESS", "Cập nhật màu sắc thành công", repo.save(color))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("ERROR", "Lỗi Server", null)
+            );
+        }
+    }
+
+    public ResponseEntity<ApiResponse> deleteColor(Integer id) {
+        try {
+            if (!repo.existsById(id)) {
+                return ResponseEntity.badRequest().body(
+                    new ApiResponse<>("ERROR", "Màu sắc không tồn tại", null)
+                );
+            }
+            repo.deleteById(id);
+            return ResponseEntity.ok().body(
+                new ApiResponse<>("SUCCESS", "Xóa màu sắc thành công", null)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>("ERROR", "Lỗi Server", null)
+            );
+        }
+    }
 }
